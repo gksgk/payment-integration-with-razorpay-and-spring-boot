@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>payment page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Course Payment Form</h2>
+                    <form onsubmit="return false">
+                        <div class="mb-3 row">
+                            <label  for="name" class="col-sm-3 col-form-label">Enter Name:</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="name" required>
+                            </div>
+
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label for="email" class="col-sm-3 col-form-label">Enter Email:</label>
+                            <div class="col-sm-9">
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="phone" class="col-sm-3 col-form-label">Phone Number:</label>
+                            <div class="col-sm-9">
+                                <input type="number" class="form-control" id="phone" required>
+                            </div>
+
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="course" class="col-sm-3 col-form-label">Select Course:</label>
+                            <div class="col-sm-9">
+                                <select class="form-select" id="course" required>
+                                    <option selected>Select Course</option>
+                                    <option value="1">Web Development</option>
+                                    <option value="2">Data Science</option>
+                                    <option value="3">Graphic Design</option>
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="amount" class="col-sm-3 col-form-label">Amount:</label>
+                            <div class="col-sm-9">
+                                <input type="number" class="form-control" id="amount" required>
+
+                            </div>
+                        </div>
+                        <button id="razorpay-submit" class="btn btn-primary d-block mx-auto">Proceed To Pay</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--JavaScript code to configure UI with backend-->
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+
+    async function createOrder(){
+        console.log("---order creation started----");
+        const response = await fetch(
+            'http://localhost:8081/create-order',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type':'application/json'
+                },
+                body: JSON.stringify({
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    phoneNo: document.getElementById('phone').value,
+                    course: document.getElementById('course').value,
+                    amount: document.getElementById('amount').value,
+                    currency: 'INR'
+                })
+            }
+        );
+        const order = await response.json();
+        console.log("----order creation completed----");
+        return order;
+    }
+
+    document.getElementById('razorpay-submit').onclick = async function(e){
+        const order = await createOrder();
+        console.log(order);
+
+        var options={
+            <!--    order details-->
+            "key": "rzp_test_t9UScE6f5YMH1v",
+            "amount": order.amount,
+            "currency": 'INR',
+            "name": "eduTech",
+            "order_id": order.paymentId,
+            "receipt": order.email,
+            "prefill": {
+                "name": order.name,
+                "email": order.email,
+                "contact": order.phoneNo
+            },
+            "theme": {
+                "color": "#3399cc"
+            },
+            "callback_url": "http://localhost:8081/payment-callback"
+        };
+
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+        e.preventDefault();
+    }
+
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous">
+
+</script>
+</body>
+</html>
